@@ -2,9 +2,11 @@ import fallbackGames from "../data/fallbackGames";
 
 const BASE_URL = "https://www.freetogame.com/api/games";
 
-// FreeToGame blocks direct browser requests (CORS), so we go through a proxy,
-// with a second proxy as a backup.
+// FreeToGame blocks direct browser requests (CORS). On Vercel, "/api/games"
+// is forwarded to FreeToGame by vercel.json, so it's same-origin and reliable.
+// The public proxies are backups for running locally.
 const PROXIES = [
+  "/api/games",
   "https://corsproxy.io/?" + BASE_URL,
   "https://api.allorigins.win/raw?url=" + encodeURIComponent(BASE_URL),
 ];
@@ -26,7 +28,8 @@ export function normalizeGame(game) {
 }
 
 async function tryFetch(url) {
-  const response = await fetch(url);
+  // Give up on any source after 5 seconds so the page never hangs.
+  const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
   if (!response.ok) throw new Error("Status " + response.status);
   const data = await response.json();
   if (!Array.isArray(data)) throw new Error("Response was not a game list.");
