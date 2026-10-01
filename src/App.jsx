@@ -1,11 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import Controls from "./components/Controls";
-import GameCard from "./components/GameCard";
-import SkeletonCard from "./components/SkeletonCard";
+import { useEffect, useState } from "react";
+import { Link, Route, Routes } from "react-router-dom";
 import { fetchGames, preloadImages } from "./utils/api";
-import { filterGames, sortGames } from "./utils/games";
-
-const SKELETON_COUNT = 8;
+import Home from "./pages/Home";
+import GameDetails from "./pages/GameDetails";
+import NotFound from "./pages/NotFound";
 
 function App() {
   const [games, setGames] = useState([]);
@@ -14,7 +12,7 @@ function App() {
   const [search, setSearch] = useState("");
   const [sortType, setSortType] = useState("newest");
 
-  // Load the games once when the page opens. Skeleton cards show until the
+  // Load the games once when the app opens. Skeleton cards show until the
   // game list AND all the cover images are ready, then everything appears at once.
   useEffect(() => {
     let cancelled = false;
@@ -36,50 +34,34 @@ function App() {
     };
   }, []);
 
-  // Re-filter and re-sort whenever the games, search, or sort choice change.
-  const visibleGames = useMemo(
-    () => sortGames(filterGames(games, search), sortType),
-    [games, search, sortType]
-  );
-
-  const keyword = search.trim();
-
   return (
     <>
       <header>
-        <h1>Free Game Finder</h1>
+        <h1>
+          <Link to="/" className="header-link">Free Game Finder</Link>
+        </h1>
         <p>Browse free-to-play games fetched live from the FreeToGame API.</p>
       </header>
 
       <main>
-        <section className="project-intro">
-          <h2>Project Overview</h2>
-          <p>
-            This app fetches real free-to-play games from the FreeToGame public API and lets you
-            search and sort them. If the API is unavailable, sample games are shown automatically.
-          </p>
-        </section>
-
-        <Controls
-          search={search}
-          onSearchChange={setSearch}
-          sortType={sortType}
-          onSortChange={setSortType}
-        />
-
-        <p className="status-message">{status}</p>
-
-        <section className="game-grid" aria-live="polite" aria-busy={loading}>
-          {loading ? (
-            Array.from({ length: SKELETON_COUNT }, (_, index) => <SkeletonCard key={index} />)
-          ) : visibleGames.length === 0 && keyword ? (
-            <p className="no-results">
-              No games found for "{keyword}". Try a different search.
-            </p>
-          ) : (
-            visibleGames.map((game) => <GameCard game={game} key={game.id} />)
-          )}
-        </section>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <Home
+                games={games}
+                loading={loading}
+                status={status}
+                search={search}
+                onSearchChange={setSearch}
+                sortType={sortType}
+                onSortChange={setSortType}
+              />
+            }
+          />
+          <Route path="/games/:id" element={<GameDetails games={games} />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </main>
 
       <footer>
