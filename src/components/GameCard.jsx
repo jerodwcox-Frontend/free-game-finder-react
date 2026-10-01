@@ -6,7 +6,7 @@ function GameCard({ game }) {
   const [imageFailed, setImageFailed] = useState(!game.thumbnail);
 
   return (
-    <article className="game-card">
+    <article className="game-card game-card--loaded">
       {imageFailed ? (
         <div className="game-image" role="img" aria-label={game.title + " cover placeholder"}>
           {game.title}
@@ -17,7 +17,6 @@ function GameCard({ game }) {
           alt={game.title + " cover image"}
           width="460"
           height="215"
-          loading="lazy"
           onError={() => setImageFailed(true)}
         />
       )}

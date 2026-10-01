@@ -48,3 +48,20 @@ export async function fetchGames() {
   }
   return { games: fallbackGames.map(normalizeGame), isLive: false };
 }
+
+// Download every cover image before showing the cards, so they all appear
+// together instead of popping in one at a time. Broken images count as done
+// (the card shows a placeholder), and we stop waiting after `timeoutMs`.
+export function preloadImages(urls, timeoutMs = 6000) {
+  const loads = urls.filter(Boolean).map(
+    (url) =>
+      new Promise((resolve) => {
+        const image = new Image();
+        image.onload = resolve;
+        image.onerror = resolve;
+        image.src = url;
+      })
+  );
+  const timeout = new Promise((resolve) => setTimeout(resolve, timeoutMs));
+  return Promise.race([Promise.all(loads), timeout]);
+}

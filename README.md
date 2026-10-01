@@ -26,7 +26,8 @@ The finished site goes into the `dist` folder. It works on Vercel (import the re
 | `src/App.jsx` | The page: loads the games and holds the search and sort state |
 | `src/components/Controls.jsx` | The search box and sort dropdown |
 | `src/components/GameCard.jsx` | One game card, with a placeholder if the image fails |
-| `src/utils/api.js` | Fetches games through a CORS proxy, with a backup proxy and sample-game fallback |
+| `src/components/SkeletonCard.jsx` | The shimmering placeholder card shown while games load |
+| `src/utils/api.js` | Fetches games (through Vercel, with proxy and sample-game fallbacks) and preloads cover images so every card appears at once |
 | `src/utils/games.js` | Search, sort and date-formatting helpers |
 | `src/data/fallbackGames.js` | The 8 sample games |
 | `src/index.css` | Styles (carried over from the original project) |

@@ -1,27 +1,36 @@
 import { useEffect, useMemo, useState } from "react";
 import Controls from "./components/Controls";
 import GameCard from "./components/GameCard";
-import { fetchGames } from "./utils/api";
+import SkeletonCard from "./components/SkeletonCard";
+import { fetchGames, preloadImages } from "./utils/api";
 import { filterGames, sortGames } from "./utils/games";
+
+const SKELETON_COUNT = 8;
 
 function App() {
   const [games, setGames] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("Loading games...");
   const [search, setSearch] = useState("");
   const [sortType, setSortType] = useState("newest");
 
-  // Load the games once when the page opens.
+  // Load the games once when the page opens. Skeleton cards show until the
+  // game list AND all the cover images are ready, then everything appears at once.
   useEffect(() => {
     let cancelled = false;
-    fetchGames().then(({ games, isLive }) => {
+    async function load() {
+      const { games, isLive } = await fetchGames();
+      await preloadImages(games.map((game) => game.thumbnail));
       if (cancelled) return;
       setGames(games);
+      setLoading(false);
       setStatus(
         isLive
           ? `Showing ${games.length} live games from the FreeToGame API.`
           : `Showing ${games.length} sample games (live API unavailable).`
       );
-    });
+    }
+    load();
     return () => {
       cancelled = true;
     };
@@ -60,8 +69,10 @@ function App() {
 
         <p className="status-message">{status}</p>
 
-        <section className="game-grid" aria-live="polite">
-          {visibleGames.length === 0 && keyword ? (
+        <section className="game-grid" aria-live="polite" aria-busy={loading}>
+          {loading ? (
+            Array.from({ length: SKELETON_COUNT }, (_, index) => <SkeletonCard key={index} />)
+          ) : visibleGames.length === 0 && keyword ? (
             <p className="no-results">
               No games found for "{keyword}". Try a different search.
             </p>
